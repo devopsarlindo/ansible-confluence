@@ -1,0 +1,56 @@
+---
+- name: confluence-test
+  hosts: localhost
+  gather_facts: False
+  vars:
+    env: "senuat1"
+    appversion: "3421.0"
+  tasks:
+  - name: get confluence page
+    uri:
+      url: "http://192.168.99.100:32769/rest/api/content?title=App%20Version&expand=body.storage,version.latest"
+      method: GET
+      user: "{{ confluenceuser }}"
+      password: "{{ confluencepassword }}"
+      force_basic_auth: yes
+      status_code: 200
+    register: confluence_page
+
+  - name: debug
+    debug: var=confluence_page.json.results[0] verbosity=3
+
+  - name: get page id, version number and new version number
+    set_fact:
+      page_id: "{{ (confluence_page.json.results[0].id) }}"
+      version_number: "{{ (confluence_page.json.results[0].version.number) }}"
+      new_version_number: "{{ (confluence_page.json.results[0].version.number)|int + 1 }}"
+
+  - name: debug page id
+    debug: var=page_id verbosity=3
+
+  - name: debug version number
+    debug: var=version_number verbosity=3
+
+  - name: debug new version number
+    debug: var=new_version_number verbosity=3
+
+  - name: debug body
+    debug: var=confluence_page.json.results[0].body.storage.value verbosity=3
+
+  - name: update the page html, increment the version and update the app version for the environment
+    set_fact:
+      new_html: "{{ confluence_page.json.results[0] | replace(': ' + version_number, ': ' + new_version_number) | regex_replace(env + '.*?<\\/td><td.*?>.*?\\/td>', env + '</td><td>' + appversion + '</td>') }}"
+
+  - name: debug new html
+    debug: var=new_html verbosity=3
+
+  - name: update confluence page
+    uri:
+      url: "http://192.168.99.100:32769/rest/api/content/{{ page_id }}"
+      method: PUT
+      user: "{{ confluenceuser }}"
+      password: "{{ confluencepassword }}"
+      force_basic_auth: yes
+      status_code: 200
+      body: "{{ new_html }}"
+      body_format: json

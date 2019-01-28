@@ -1,0 +1,36 @@
+# GET PATH, VERSION, ID, BODY
+
+curl -u admin:admin -X GET "http://192.168.99.100:32769/rest/api/content?title=App%20Version&expand=body.storage,version.latest" | python -mjson.tool > c.txt
+
+
+# PUT UPDATE 
+curl -u admin:admin -X PUT -H 'Content-Type: application/json' -d @c.json http://192.168.99.100:32769/rest/api/content/65608 | python -mjson.tool
+
+
+# JSON SEND TO UPDATE
+
+{
+   
+            "body": {
+                "storage": {
+                    "_expandable": {
+                        "content": "/rest/api/content/65608"
+                    },
+                    "representation": "storage",
+                    "value": "<p><br /></p><table><tbody><tr><th>Environment</th><th>Version</th></tr><tr><td>senqa2-34</td><td><br /></td></tr></tbody></table><p class=\"auto-cursor-target\"><br /></p>"
+                }
+            },
+            "id": "65608",
+            "status": "current",
+            "title": "App Version",
+            "type": "page",
+            "version": {
+                "hidden": false,
+                "message": "",
+                "minorEdit": false,
+                "number": 2,
+                "when": "2019-01-27T03:49:27.931Z"
+            }
+}
+
+
